@@ -1,0 +1,74 @@
+services:
+  onlyoffice-documentserver:
+    image: onlyoffice/documentserver:latest
+    container_name: onlyoffice-documentserver
+    depends_on:
+      - onlyoffice-postgresql
+      - onlyoffice-rabbitmq
+    env_file:
+      - .env
+    environment:
+      - DB_TYPE=postgres
+      - DB_HOST=onlyoffice-postgresql
+      - DB_PORT=5432
+      - DB_NAME=${ONLYOFFICE_POSTGRES_DB}
+      - DB_USER=${ONLYOFFICE_POSTGRES_USER}
+      - DB_PASSWORD=${ONLYOFFICE_POSTGRES_PASS}
+      - AMQP_URI=amqp://guest:guest@onlyoffice-rabbitmq
+      - JWT_ENABLED=true
+      - JWT_SECRET=${ONLYOFFICE_JWT_SECRET}
+      - JWT_HEADER=Authorization
+      - JWT_IN_BODY=true
+    restart: always
+    stop_grace_period: 60s
+    volumes:
+      - onlyoffice_data:/var/www/onlyoffice/Data
+      - onlyoffice_log:/var/log/onlyoffice
+      - onlyoffice_cache:/var/lib/onlyoffice/documentserver/App_Data/cache/files
+      - onlyoffice_example_files:/var/www/onlyoffice/documentserver-example/public/files
+      - /usr/share/fonts
+    networks:
+      - web
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.docs.rule=Host(`docs.red.local`)"
+      - "traefik.http.routers.docs.entrypoints=websecure"
+      - "traefik.http.routers.docs.tls=true"
+      - "traefik.http.services.docs.loadbalancer.server.port=80"
+
+  onlyoffice-rabbitmq:
+    container_name: onlyoffice-rabbitmq
+    image: rabbitmq:4.0 ## Currently a problem with OnlyOffice and RabbitMQ 4.1 due to frame_max changes
+    restart: always
+    expose:
+      - "5672"
+    networks:
+      - web
+
+  onlyoffice-postgresql:
+    container_name: onlyoffice-postgresql
+    image: postgres:11
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_DB=${ONLYOFFICE_POSTGRES_DB}
+      - POSTGRES_USER=${ONLYOFFICE_POSTGRES_USER}
+      - POSTGRES_PASSWORD=${ONLYOFFICE_POSTGRES_PASS}
+    restart: always
+    volumes:
+      - onlyoffice_postgresql_data:/var/lib/postgresql/data
+    expose:
+      - "5432"
+    networks:
+      - web
+
+volumes:
+  onlyoffice_postgresql_data: {}
+  onlyoffice_data: {}
+  onlyoffice_log: {}
+  onlyoffice_cache: {}
+  onlyoffice_example_files: {}
+
+networks:
+  web:
+    external: true

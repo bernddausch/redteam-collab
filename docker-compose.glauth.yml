@@ -1,0 +1,17 @@
+
+services:
+  glauth:
+    image: glauth/glauth:latest
+    container_name: glauth
+    restart: always
+    networks:
+      - web
+    ports:
+      - "389:389"
+      - "636:636"
+    volumes:
+      - ./configs/glauth/config.cfg:/app/config/config.cfg
+      - ./certs/glauth:/app/certs
+networks:
+  web:
+    external: true

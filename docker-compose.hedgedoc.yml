@@ -1,0 +1,47 @@
+services:
+  hedgedoc:
+    image: lscr.io/linuxserver/hedgedoc:latest
+    container_name: hedgedoc
+    restart: always
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - CMD_SESSION_SECRET=${HEDGEDOC_SESSION_SECRET}
+      - DB_URL=sqlite:///data/sqlite.db
+      - CMD_ALLOW_EMAIL_REGISTER=false
+      - CMD_ALLOW_FREEURL=true
+      - CMD_REQUIRE_FREEURL_AUTHENTICATION=true
+      - CMD_ALLOW_ANONYMOUS_EDITS=false
+      - CMD_ALLOW_ANONYMOUS=false
+      - CMD_ENABLE_STATS_API=true
+      - CMD_DOMAIN=hedge.${TRAEFIK_DOMAIN}
+      - CMD_URL_ADDPORT=true
+      - CMD_PROTOCOL_USESSL=true
+      - CMD_PORT=${TRAEFIK_PORT}
+      - CMD_ALLOW_ORIGIN=['localhost']
+      - CMD_LDAP_URL=ldap://glauth:389
+      - CMD_LDAP_BINDDN=cn=${HEDGEDOC_LDAP_BIND_USER},${LDAP_BASEDN}
+      - CMD_LDAP_BINDCREDENTIALS=${HEDGEDOC_LDAP_BIND_PASSWORD}
+      - CMD_LDAP_SEARCHBASE=ou=users,${LDAP_BASEDN}
+      - CMD_LDAP_SEARCHFILTER=(uid={{username}})
+      - CMD_LDAP_SEARCHATTRIBUTES=uid,mail
+      - CMD_LDAP_USERIDFIELD=uid
+    volumes:
+      - hedgedoc_config:/config
+      - hedgedoc_data:/data
+    networks:
+      - web
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.hedge.rule=Host(`hedge.${TRAEFIK_DOMAIN}`)"
+      - "traefik.http.routers.hedge.entrypoints=websecure"
+      - "traefik.http.routers.hedge.tls=true"
+      - "traefik.http.services.hedge.loadbalancer.server.port=${TRAEFIK_PORT}"
+
+volumes:
+  hedgedoc_data: {}
+  hedgedoc_config: {}
+
+networks:
+  web:
+    external: true
