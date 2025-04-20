@@ -1,0 +1,21 @@
+
+services:
+  cyberchef:
+    image: ghcr.io/gchq/cyberchef:latest
+    container_name: cyberchef
+    restart: always
+    environment:
+      - TZ=US/New_York
+    stdin_open: true
+    networks:
+      - web
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.chef.rule=Host(`chef.${TRAEFIK_DOMAIN}`)"
+      - "traefik.http.routers.chef.entrypoints=websecure"
+      - "traefik.http.routers.chef.tls=true"
+      - "traefik.http.services.chef.loadbalancer.server.port=80"
+
+networks:
+  web:
+    external: true

@@ -1,0 +1,17 @@
+
+services:
+  excalidraw:
+    image: excalidraw/excalidraw:latest
+    container_name: excalidraw
+    restart: always
+    networks:
+      - web
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.draw.rule=Host(`draw.${TRAEFIK_DOMAIN}`)"
+      - "traefik.http.routers.draw.entrypoints=websecure"
+      - "traefik.http.routers.draw.tls=true"
+      - "traefik.http.services.draw.loadbalancer.server.port=80"
+networks:
+  web:
+    external: true

@@ -1,0 +1,8 @@
+# Red Infra Hosts
+127.0.0.1 git.red.local
+127.0.0.1 vault.red.local
+127.0.0.1 hedge.red.local
+127.0.0.1 auth.red.local
+127.0.0.1 chef.red.local
+127.0.0.1 doc.red.local
+127.0.0.1 traefik.red.local
