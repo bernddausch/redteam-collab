@@ -4,7 +4,6 @@ This bundle contains Docker Compose files for several self-hosted services, alon
 
 ## 📦 Included Services
 
-- CyberChef (Magical Everything Tool)
 - Excalidraw (Diagramming)
 - Gitea (Self-hosted Git service)
 - Vaultwarden (Bitwarden-compatible password manager)
