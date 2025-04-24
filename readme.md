@@ -28,6 +28,8 @@ Start each of the services like this:
 ./gen_envfile.sh
 # Generate Glauth Config (YOU SHOULD EDIT YOUR .ENV FIRST)
 ./gen_glauth.sh
+# Create shared network
+docker create web
 # Supporting Services
 docker compose -f docker-compose.glauth.yml -f docker-compose.traefik.yml up -d
 # Non-dependant Applications
