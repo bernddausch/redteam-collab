@@ -1,0 +1,49 @@
+
+services:
+  glauth:
+    image: glauth/glauth:latest
+    container_name: glauth
+    restart: always
+    networks:
+      - web
+    ports:
+      - "389:389"
+      - "636:636"
+    volumes:
+      - ./configs/glauth/config.cfg:/app/config/config.cfg
+      - ./certs/glauth:/app/certs
+
+  traefik:
+    image: traefik:latest
+    container_name: traefik
+    restart: always
+    ports:
+      - "127.0.0.1:${TRAEFIK_PORT}:443"
+    labels:
+      - "traefik.http.routers.app.entrypoints=websecure"
+      - "traefik.http.services.app.loadbalancer.server.port=80"
+    volumes:
+      - ./configs/traefik/traefik.yml:/etc/traefik/traefik.yml
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - web
+
+  cyberchef:
+    image: whoisbrnd.azurecr.io/cyberchef:2025.07
+    container_name: cyberchef
+    restart: always
+    environment:
+      - TZ=US/New_York
+    stdin_open: true
+    networks:
+      - web
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.chef.rule=Host(`chef.${TRAEFIK_DOMAIN}`)"
+      - "traefik.http.routers.chef.entrypoints=websecure"
+      - "traefik.http.routers.chef.tls=true"
+      - "traefik.http.services.chef.loadbalancer.server.port=80"
+
+networks:
+  web:
+    external: true
