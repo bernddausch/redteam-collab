@@ -197,6 +197,7 @@ services:
     env_file:
       - .env
     environment:
+      - DS_HOST=https://docs.red.local 
       - DB_TYPE=postgres
       - DB_HOST=onlyoffice-postgresql
       - DB_PORT=5432
