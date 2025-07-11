@@ -107,7 +107,7 @@ services:
       - web
 
   gitea:
-    image: docker.io/gitea.com/gitea:latest
+    image: gitea.com/gitea:latest
     container_name: gitea
     restart: always
     volumes:
