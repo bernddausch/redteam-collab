@@ -1,6 +1,6 @@
 services:
   onlyoffice-documentserver:
-    image: onlyoffice/documentserver:latest
+    image: docker.io/onlyoffice/documentserver:latest
     container_name: onlyoffice-documentserver
     depends_on:
       - onlyoffice-postgresql

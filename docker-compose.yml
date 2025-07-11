@@ -18,7 +18,7 @@ services:
     container_name: traefik
     restart: always
     ports:
-      - "127.0.0.1:${TRAEFIK_PORT}:443"
+      - "0.0.0.0:${TRAEFIK_PORT}:443"
     labels:
       - "traefik.http.routers.app.entrypoints=websecure"
       - "traefik.http.services.app.loadbalancer.server.port=80"
@@ -86,6 +86,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+
   mc-init:
     image: docker.io/minio/mc
     depends_on:
@@ -148,11 +149,133 @@ services:
     volumes:
       - gitea_postgresql_data:/var/lib/postgresql/data
 
+  hedgedoc:
+    image: lscr.io/linuxserver/hedgedoc:latest
+    container_name: hedgedoc
+    restart: always
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - CMD_SESSION_SECRET=${HEDGEDOC_SESSION_SECRET}
+      - DB_URL=sqlite:///data/sqlite.db
+      - CMD_ALLOW_EMAIL_REGISTER=false
+      - CMD_ALLOW_FREEURL=true
+      - CMD_REQUIRE_FREEURL_AUTHENTICATION=true
+      - CMD_ALLOW_ANONYMOUS_EDITS=false
+      - CMD_ALLOW_ANONYMOUS=false
+      - CMD_ENABLE_STATS_API=true
+      - CMD_DOMAIN=hedge.${TRAEFIK_DOMAIN}
+      - CMD_URL_ADDPORT=true
+      - CMD_PROTOCOL_USESSL=true
+      - CMD_PORT=${TRAEFIK_PORT}
+      - CMD_ALLOW_ORIGIN=['localhost']
+      - CMD_LDAP_URL=ldap://glauth:389
+      - CMD_LDAP_BINDDN=cn=${HEDGEDOC_LDAP_BIND_USER},${LDAP_BASEDN}
+      - CMD_LDAP_BINDCREDENTIALS=${HEDGEDOC_LDAP_BIND_PASSWORD}
+      - CMD_LDAP_SEARCHBASE=ou=users,${LDAP_BASEDN}
+      - CMD_LDAP_SEARCHFILTER=(uid={{username}})
+      - CMD_LDAP_SEARCHATTRIBUTES=uid,mail
+      - CMD_LDAP_USERIDFIELD=uid
+    volumes:
+      - hedgedoc_config:/config
+      - hedgedoc_data:/data
+    networks:
+      - web
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.hedge.rule=Host(`hedge.${TRAEFIK_DOMAIN}`)"
+      - "traefik.http.routers.hedge.entrypoints=websecure"
+      - "traefik.http.routers.hedge.tls=true"
+      - "traefik.http.services.hedge.loadbalancer.server.port=${TRAEFIK_PORT}"
+
+  onlyoffice-documentserver:
+    image: docker.io/onlyoffice/documentserver:latest
+    container_name: onlyoffice-documentserver
+    depends_on:
+      - onlyoffice-postgresql
+      - onlyoffice-rabbitmq
+    env_file:
+      - .env
+    environment:
+      - DB_TYPE=postgres
+      - DB_HOST=onlyoffice-postgresql
+      - DB_PORT=5432
+      - DB_NAME=${ONLYOFFICE_POSTGRES_DB}
+      - DB_USER=${ONLYOFFICE_POSTGRES_USER}
+      - DB_PASSWORD=${ONLYOFFICE_POSTGRES_PASS}
+      - AMQP_URI=amqp://guest:guest@onlyoffice-rabbitmq
+      - JWT_ENABLED=true
+      - JWT_SECRET=${ONLYOFFICE_JWT_SECRET}
+      - JWT_HEADER=Authorization
+      - JWT_IN_BODY=true
+    restart: always
+    stop_grace_period: 60s
+    volumes:
+      - onlyoffice_data:/var/www/onlyoffice/Data
+      - onlyoffice_log:/var/log/onlyoffice
+      - onlyoffice_cache:/var/lib/onlyoffice/documentserver/App_Data/cache/files
+      - onlyoffice_example_files:/var/www/onlyoffice/documentserver-example/public/files
+      - /usr/share/fonts
+    networks:
+      - web
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.docs.rule=Host(`docs.red.local`)"
+      - "traefik.http.routers.docs.entrypoints=websecure"
+      - "traefik.http.routers.docs.tls=true"
+      - "traefik.http.services.docs.loadbalancer.server.port=80"
+
+  onlyoffice-rabbitmq:
+    container_name: onlyoffice-rabbitmq
+    image: docker.io/rabbitmq:4.0 ## Currently a problem with OnlyOffice and RabbitMQ 4.1 due to frame_max changes
+    restart: always
+    expose:
+      - "5672"
+    networks:
+      - web
+
+  onlyoffice-postgresql:
+    container_name: onlyoffice-postgresql
+    image: docker.io/postgres:11
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_DB=${ONLYOFFICE_POSTGRES_DB}
+      - POSTGRES_USER=${ONLYOFFICE_POSTGRES_USER}
+      - POSTGRES_PASSWORD=${ONLYOFFICE_POSTGRES_PASS}
+    restart: always
+    volumes:
+      - onlyoffice_postgresql_data:/var/lib/postgresql/data
+    expose:
+      - "5432"
+    networks:
+      - web
+
+  excalidraw:
+    image: docker.io/excalidraw/excalidraw:latest
+    container_name: excalidraw
+    restart: always
+    networks:
+      - web
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.draw.rule=Host(`draw.${TRAEFIK_DOMAIN}`)"
+      - "traefik.http.routers.draw.entrypoints=websecure"
+      - "traefik.http.routers.draw.tls=true"
+      - "traefik.http.services.draw.loadbalancer.server.port=80"
+
 volumes:
   minio_data: {}
   gitea_postgresql_data: {} 
   gitea_data: {}
   gitea_config: {}
+  hedgedoc_data: {}
+  hedgedoc_config: {}
+  onlyoffice_postgresql_data: {}
+  onlyoffice_data: {}
+  onlyoffice_log: {}
+  onlyoffice_cache: {}
+  onlyoffice_example_files: {}
 
 networks:
   web:
