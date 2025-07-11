@@ -1,7 +1,7 @@
 
 services:
   glauth:
-    image: glauth/glauth:latest
+    image: docker.io/glauth/glauth:latest
     container_name: glauth
     restart: always
     networks:
@@ -14,7 +14,7 @@ services:
       - ./certs/glauth:/app/certs
 
   traefik:
-    image: traefik:latest
+    image: docker.io/traefik:latest
     container_name: traefik
     restart: always
     ports:
@@ -43,6 +43,23 @@ services:
       - "traefik.http.routers.chef.entrypoints=websecure"
       - "traefik.http.routers.chef.tls=true"
       - "traefik.http.services.chef.loadbalancer.server.port=80"
+
+  vaultwarden:
+    image: docker.io/vaultwarden/server:latest
+    container_name: vaultwarden
+    restart: unless-stopped
+    environment:
+      - DOMAIN=https://vault.${TRAEFIK_DOMAIN}:${TRAEFIK_PORT}
+    volumes:
+      - /opt/vw-data/:/data/
+    networks:
+      - web
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.vault.rule=Host(`vault.${TRAEFIK_DOMAIN}`)"
+      - "traefik.http.routers.vault.entrypoints=websecure"
+      - "traefik.http.routers.vault.tls=true"
+      - "traefik.http.services.vault.loadbalancer.server.port=80"
 
 networks:
   web:
