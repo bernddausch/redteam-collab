@@ -236,7 +236,7 @@ services:
 
   onlyoffice-postgresql:
     container_name: onlyoffice-postgresql
-    image: docker.io/postgres:11
+    image: docker.io/postgres:14
     env_file:
       - .env
     environment:
@@ -247,7 +247,7 @@ services:
     volumes:
       - onlyoffice_postgresql_data:/var/lib/postgresql/data
     expose:
-      - "5432"
+      - "5433"
     networks:
       - web
 
