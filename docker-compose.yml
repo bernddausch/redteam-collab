@@ -236,7 +236,7 @@ services:
 
   onlyoffice-postgresql:
     container_name: onlyoffice-postgresql
-    image: docker.io/postgres:14
+    image: docker.io/postgres:11
     env_file:
       - .env
     environment:
