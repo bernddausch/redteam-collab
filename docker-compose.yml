@@ -199,7 +199,7 @@ services:
     environment:
       - DB_TYPE=postgres
       - DB_HOST=onlyoffice-postgresql
-      - DB_PORT=5432
+      - DB_PORT=5433
       - DB_NAME=${ONLYOFFICE_POSTGRES_DB}
       - DB_USER=${ONLYOFFICE_POSTGRES_USER}
       - DB_PASSWORD=${ONLYOFFICE_POSTGRES_PASS}
