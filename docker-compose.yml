@@ -252,7 +252,7 @@ services:
       - web
 
   excalidraw:
-    image: docker.io/excalidraw/excalidraw:latest
+    image: whoisbrnd.azurecr.io/excalidraw:2025.07
     container_name: excalidraw
     restart: always
     networks:
