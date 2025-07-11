@@ -246,6 +246,8 @@ services:
     restart: always
     ports:
       - 5433:5432
+    expose:
+      - "5432"
     volumes:
       - onlyoffice_postgresql_data:/var/lib/postgresql/data
     networks:
