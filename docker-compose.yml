@@ -244,10 +244,10 @@ services:
       - POSTGRES_USER=${ONLYOFFICE_POSTGRES_USER}
       - POSTGRES_PASSWORD=${ONLYOFFICE_POSTGRES_PASS}
     restart: always
+    ports:
+      - 5433:5432
     volumes:
       - onlyoffice_postgresql_data:/var/lib/postgresql/data
-    expose:
-      - "5433"
     networks:
       - web
 
