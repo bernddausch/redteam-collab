@@ -227,7 +227,7 @@ services:
 
   onlyoffice-rabbitmq:
     container_name: onlyoffice-rabbitmq
-    image: docker.io/rabbitmq:4.0 ## Currently a problem with OnlyOffice and RabbitMQ 4.1 due to frame_max changes
+    image: docker.io/rabbitmq:3 ## Currently a problem with OnlyOffice and RabbitMQ 4.1 due to frame_max changes
     restart: always
     expose:
       - "5672"
@@ -236,7 +236,7 @@ services:
 
   onlyoffice-postgresql:
     container_name: onlyoffice-postgresql
-    image: docker.io/postgres:11
+    image: docker.io/postgres:15
     env_file:
       - .env
     environment:
